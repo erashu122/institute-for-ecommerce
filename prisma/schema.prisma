@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum DeliveryMode {
+  ONLINE
+  CLASSROOM
+  HYBRID
+}
+
+enum StaffRole {
+  ADMIN
+  EDITOR
+}
+
+model Staff {
+  id     String    @id @default(cuid())
+  email  String    @unique
+  role   StaffRole @default(EDITOR)
+  active Boolean   @default(true)
+}
+
+model CourseCategory {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  slug    String   @unique
+  courses Course[]
+}
+
+model Course {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  summary     String
+  description String
+  categoryId  String
+  category    CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  duration    String
+  mode        DeliveryMode
+  eligibility String
+  curriculum  String[]
+  outcomes    String[]
+  fee         Decimal        @db.Decimal(12, 2)
+  image       String?
+  status      CourseStatus   @default(DRAFT)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([status, createdAt, id])
+  @@index([categoryId, status])
+  @@index([mode, status])
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model MediaAsset {
+  id         String   @id @default(cuid())
+  storageKey String   @unique
+  alt        String
+  mimeType   String
+  byteSize   Int
+  width      Int
+  height     Int
+  createdAt  DateTime @default(now())
+  faculty    Faculty[]
+  posts      BlogPost[]
+  categories BlogCategory[]
+  events     Event[]
+  testimonials Testimonial[]
+  faqs       FAQ[]
+  pages      InstitutionalContent[]
+}
+
+model Faculty {
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  summary   String @default("")
+  body      String
+  details   Json @default("{}")
+  sortOrder Int @default(0)
+  status    ContentStatus @default(DRAFT)
+  version   Int @default(1)
+  imageId   String?
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  @@index([status, sortOrder, createdAt, id])
+  @@index([imageId, status])
+}
+
+model BlogPost {
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  summary   String @default("")
+  body      String
+  details   Json @default("{}")
+  sortOrder Int @default(0)
+  status    ContentStatus @default(DRAFT)
+  version   Int @default(1)
+  imageId   String?
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  categoryId String?
+  category BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  @@index([categoryId, status])
+
+  @@index([status, sortOrder, createdAt, id])
+  @@index([imageId, status])
+}
+
+model BlogCategory {
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  summary   String @default("")
+  body      String
+  details   Json @default("{}")
+  sortOrder Int @default(0)
+  status    ContentStatus @default(DRAFT)
+  version   Int @default(1)
+  imageId   String?
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts BlogPost[]
+
+  @@index([status, sortOrder, createdAt, id])
+  @@index([imageId, status])
+}
+
+model Event {
+  startsAt DateTime
+  endsAt DateTime?
+  @@index([status, startsAt])
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  summary   String @default("")
+  body      String
+  details   Json @default("{}")
+  sortOrder Int @default(0)
+  status    ContentStatus @default(DRAFT)
+  version   Int @default(1)
+  imageId   String?
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  @@index([status, sortOrder, createdAt, id])
+  @@index([imageId, status])
+}
+
+model Testimonial {
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  summary   String @default("")
+  body      String
+  details   Json @default("{}")
+  sortOrder Int @default(0)
+  status    ContentStatus @default(DRAFT)
+  version   Int @default(1)
+  imageId   String?
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  @@index([status, sortOrder, createdAt, id])
+  @@index([imageId, status])
+}
+
+model FAQ {
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  summary   String @default("")
+  body      String
+  details   Json @default("{}")
+  sortOrder Int @default(0)
+  status    ContentStatus @default(DRAFT)
+  version   Int @default(1)
+  imageId   String?
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  @@index([status, sortOrder, createdAt, id])
+  @@index([imageId, status])
+}
+
+model InstitutionalContent {
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  summary   String @default("")
+  body      String
+  details   Json @default("{}")
+  sortOrder Int @default(0)
+  status    ContentStatus @default(DRAFT)
+  version   Int @default(1)
+  imageId   String?
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  @@index([status, sortOrder, createdAt, id])
+  @@index([imageId, status])
+}
+

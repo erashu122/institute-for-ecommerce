@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: institute_ci
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: institute_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U institute_ci -d institute_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://institute_ci:ci-only@localhost:5432/institute_ci?schema=public
+      INSTITUTE_TEST_DATABASE: "1"
+      INSTITUTE_TEST_CMS: "1"
+      MEDIA_STORAGE_DIR: ${{ runner.temp }}/institute-media
+      AUTH_GOOGLE_ID: ci-test-only
+      AUTH_GOOGLE_SECRET: ci-test-only
+      AUTH_URL: http://127.0.0.1:3100
+      AUTH_TRUST_HOST: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Generate isolated test session secret
+        run: node -e "require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'AUTH_SECRET=' + require('node:crypto').randomBytes(32).toString('hex') + '\n')"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run db:validate
+      - run: npm run db:migrate
+      - run: npm run db:status
+      - run: npm run db:seed
+      - run: npm run staff:provision -- admin@example.test ADMIN
+      - run: npm run test:integration
+      - run: npm run db:seed:content
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+

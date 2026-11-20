@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #f8f6ef;
+  --color-ink: #172d29;
+  --color-accent: #d9eea5;
+  --color-forest: #173930;
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
